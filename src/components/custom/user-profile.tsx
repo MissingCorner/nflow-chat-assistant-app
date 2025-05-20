@@ -1,64 +1,47 @@
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/auth-context";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { LogOut, Settings } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
-interface UserProfileProps {
-  name: string;
-  email: string;
-  avatarUrl?: string;
-  onSignOut?: () => void;
-  onSettings?: () => void;
-}
+export function UserProfile() {
+  const { user, logout, isLoading } = useAuth();
 
-export function UserProfile({
-  name,
-  email,
-  avatarUrl,
-  onSignOut,
-  onSettings,
-}: UserProfileProps) {
-  const initials = name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase();
+  console.log(user);
+
+  if (!user) return null;
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          className="h-12 w-full justify-start gap-3 px-3"
-        >
-          <Avatar>
-            {avatarUrl ? (
-              <AvatarImage src={avatarUrl} alt={name} />
-            ) : (
-              <AvatarFallback>{initials}</AvatarFallback>
-            )}
+        <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+          <Avatar className="h-8 w-8">
+            <AvatarFallback>{user.name || ""}</AvatarFallback>
           </Avatar>
-          <div className="flex flex-col items-start text-left">
-            <span className="text-sm font-medium">{name}</span>
-            <span className="text-xs text-muted-foreground">{email}</span>
-          </div>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56">
-        <DropdownMenuItem onClick={onSettings}>
-          <Settings className="mr-2 size-4" />
-          Settings
-        </DropdownMenuItem>
+      <DropdownMenuContent className="w-56" align="end" forceMount>
+        <DropdownMenuLabel className="font-normal">
+          <div className="flex flex-col space-y-1">
+            <p className="text-sm font-medium leading-none">{user.name}</p>
+            <p className="text-xs leading-none text-muted-foreground">
+              {user.email}
+            </p>
+          </div>
+        </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={onSignOut}>
-          <LogOut className="mr-2 size-4" />
-          Sign out
+        <DropdownMenuItem
+          onClick={() => logout()}
+          disabled={isLoading}
+          className="text-red-600 focus:text-red-600"
+        >
+          Log out
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

@@ -11,13 +11,11 @@ import { Plus } from "lucide-react";
 import { ChatSessionItem } from "./chat-session-item";
 import { UserProfile } from "./user-profile";
 import { useSessionStore } from "@/stores/useSessionStore";
-import { useUserStore } from "@/stores/useUserStore";
 
 export function ChatSidebar() {
   // Get state and actions from stores
   const { sessions, activeSessionId, createSession, setActiveSession } =
     useSessionStore();
-  const { user, signOut } = useUserStore();
 
   const handleNewChat = async () => {
     await createSession("New Chat");
@@ -25,11 +23,6 @@ export function ChatSidebar() {
 
   const handleSessionClick = (sessionId: string) => {
     setActiveSession(sessionId);
-  };
-
-  const handleSettings = () => {
-    // Implement settings navigation
-    console.log("Open settings");
   };
 
   return (
@@ -63,13 +56,7 @@ export function ChatSidebar() {
         </SidebarMenu>
       </SidebarContent>
       <SidebarFooter className="border-t border-border p-0">
-        <UserProfile
-          name={user?.name || ""}
-          email={user?.email || ""}
-          avatarUrl={user?.avatarUrl || ""}
-          onSignOut={signOut}
-          onSettings={handleSettings}
-        />
+        <UserProfile />
       </SidebarFooter>
     </Sidebar>
   );

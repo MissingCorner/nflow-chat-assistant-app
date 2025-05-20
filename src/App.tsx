@@ -1,19 +1,36 @@
 import "./App.css";
-import { Chat } from "./pages/chat/chat";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { ThemeProvider } from "./contexts/ThemeContext";
+import { AuthProvider } from "@/contexts/auth-context";
+import { ProtectedRoute } from "@/components/custom/protected-route";
+import { LoginPage } from "@/pages/login";
+import { Chat } from "@/pages/chat/chat";
+import { ThemeProvider } from "@/contexts/ThemeContext";
 
 function App() {
   return (
-    <ThemeProvider>
-      <Router>
-        <div className="w-full h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-white">
-          <Routes>
-            <Route path="/" element={<Chat />} />
-          </Routes>
-        </div>
-      </Router>
-    </ThemeProvider>
+    <Router>
+      <ThemeProvider>
+        <AuthProvider>
+          <div className="w-full h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-white">
+            <main>
+              <Routes>
+                <Route path="/login" element={<LoginPage />} />
+
+                {/* Protected routes */}
+                <Route
+                  path="/"
+                  element={
+                    <ProtectedRoute>
+                      <Chat />
+                    </ProtectedRoute>
+                  }
+                />
+              </Routes>
+            </main>
+          </div>
+        </AuthProvider>
+      </ThemeProvider>
+    </Router>
   );
 }
 
