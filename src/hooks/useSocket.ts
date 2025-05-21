@@ -55,7 +55,7 @@ export function useSocket(url: string = "http://localhost:3000") {
       (data) => console.log("WebSocket: sessionJoined", data),
       (data) => {
         console.log("WebSocket: sessionTitleUpdated", data);
-        updateSessionTitleFromSocket(data.sessionId, data.title);
+        updateSessionTitleFromSocket(data.chatSessionId, data.title);
       },
       (error) => {
         console.error("Socket error:", error);

@@ -13,16 +13,16 @@ interface UseChatMessagesReturn {
   messages: Message[];
   isLoading: boolean;
   error: Error | null;
-  fetchMessages: (sessionId?: string) => Promise<Message[]>;
+  fetchMessages: (chatSessionId?: string) => Promise<Message[]>;
   sendMessage: (
-    sessionId: string,
+    chatSessionId: string,
     content: string,
     role?: "USER" | "ASSISTANT" | "SYSTEM"
   ) => Promise<Message>;
   updateMessage: (id: string, content: string) => Promise<Message>;
   deleteMessage: (id: string) => Promise<void>;
-  clearSessionMessages: (sessionId: string) => Promise<void>;
-  setActiveSessionId: (sessionId: string) => void;
+  clearSessionMessages: (chatSessionId: string) => Promise<void>;
+  setActiveSessionId: (chatSessionId: string) => void;
 }
 
 export function useChatMessages(initialSessionId = ""): UseChatMessagesReturn {
@@ -33,8 +33,8 @@ export function useChatMessages(initialSessionId = ""): UseChatMessagesReturn {
   const [error, setError] = useState<Error | null>(null);
 
   const fetchMessages = useCallback(
-    async (sessionId?: string): Promise<Message[]> => {
-      const targetSessionId = sessionId || activeSessionId;
+    async (chatSessionId?: string): Promise<Message[]> => {
+      const targetSessionId = chatSessionId || activeSessionId;
       if (!targetSessionId) return [];
 
       setIsLoading(true);
@@ -44,8 +44,8 @@ export function useChatMessages(initialSessionId = ""): UseChatMessagesReturn {
         const appMessages = data.map(mapToAppMessage);
 
         if (
-          sessionId === activeSessionId ||
-          (!sessionId && targetSessionId === activeSessionId)
+          chatSessionId === activeSessionId ||
+          (!chatSessionId && targetSessionId === activeSessionId)
         ) {
           setMessages(appMessages);
         }
@@ -65,7 +65,7 @@ export function useChatMessages(initialSessionId = ""): UseChatMessagesReturn {
 
   const sendMessage = useCallback(
     async (
-      sessionId: string,
+      chatSessionId: string,
       content: string,
       role: "USER" | "ASSISTANT" | "SYSTEM" = "USER"
     ): Promise<Message> => {
@@ -73,14 +73,14 @@ export function useChatMessages(initialSessionId = ""): UseChatMessagesReturn {
       setError(null);
       try {
         const response = await createChatMessage({
-          sessionId,
+          chatSessionId: chatSessionId,
           content,
           role,
         });
 
         const newMessage = mapToAppMessage(response);
 
-        if (sessionId === activeSessionId) {
+        if (chatSessionId === activeSessionId) {
           setMessages((prev) => [...prev, newMessage]);
         }
 
@@ -143,20 +143,22 @@ export function useChatMessages(initialSessionId = ""): UseChatMessagesReturn {
   }, []);
 
   const clearSessionMessages = useCallback(
-    async (sessionId: string): Promise<void> => {
+    async (chatSessionId: string): Promise<void> => {
       setIsLoading(true);
       setError(null);
       try {
-        await deleteAllSessionMessages(sessionId);
+        await deleteAllSessionMessages(chatSessionId);
 
-        if (sessionId === activeSessionId) {
+        if (chatSessionId === activeSessionId) {
           setMessages([]);
         }
       } catch (err) {
         const error =
           err instanceof Error
             ? err
-            : new Error(`Failed to clear messages for session ${sessionId}`);
+            : new Error(
+                `Failed to clear messages for session ${chatSessionId}`
+              );
         setError(error);
         throw error;
       } finally {

@@ -25,7 +25,7 @@ interface SessionState {
   ) => Promise<void>;
   deleteSession: (id: string) => Promise<void>;
   setActiveSession: (id: string) => void;
-  updateSessionTitleFromSocket: (sessionId: string, title: string) => void;
+  updateSessionTitleFromSocket: (chatSessionId: string, title: string) => void;
 }
 
 export const useSessionStore = create<SessionState>()(
@@ -152,19 +152,19 @@ export const useSessionStore = create<SessionState>()(
       },
 
       // Handle real-time session title updates from WebSocket
-      updateSessionTitleFromSocket: (sessionId: string, title: string) => {
+      updateSessionTitleFromSocket: (chatSessionId: string, title: string) => {
         console.log(
-          `Received real-time title update for session ${sessionId}: ${title}`
+          `Received real-time title update for session ${chatSessionId}: ${title}`
         );
 
         set((state) => ({
           sessions: state.sessions.map((session) =>
-            session.id === sessionId ? { ...session, title } : session
+            session.id === chatSessionId ? { ...session, title } : session
           ),
         }));
 
         // Show a notification only if it's the active session
-        if (sessionId === get().activeSessionId) {
+        if (chatSessionId === get().activeSessionId) {
           toast.info(`Chat renamed to "${title}"`);
         }
       },

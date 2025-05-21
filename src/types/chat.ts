@@ -8,12 +8,12 @@ export interface Session {
 }
 
 export interface ChatRequest {
-  sessionId: string;
+  chatSessionId: string;
   message: string;
 }
 
 export interface ChatResponse {
-  sessionId: string;
+  chatSessionId: string;
   reply: string;
   appUrl?: string;
 }

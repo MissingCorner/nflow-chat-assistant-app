@@ -28,15 +28,15 @@ interface MessageState {
   streamingMessageId: string | null;
 
   // Actions
-  fetchMessages: (sessionId?: string) => Promise<void>;
+  fetchMessages: (chatSessionId?: string) => Promise<void>;
   sendUserMessage: (
-    sessionId: string,
+    chatSessionId: string,
     content: string,
     role?: "USER" | "ASSISTANT" | "SYSTEM"
   ) => Promise<Message>;
   updateMessage: (id: string, content: string) => Promise<void>;
   deleteMessage: (id: string) => Promise<void>;
-  clearSessionMessages: (sessionId: string) => Promise<void>;
+  clearSessionMessages: (chatSessionId: string) => Promise<void>;
   receiveSocketMessage: (message: Message) => void;
   startSocketResponse: () => void;
   finishSocketResponse: () => void;
@@ -54,9 +54,9 @@ export const useMessageStore = create<MessageState>()((set) => ({
   streamingMessageId: null,
 
   // Actions
-  fetchMessages: async (sessionId?: string) => {
+  fetchMessages: async (chatSessionId?: string) => {
     const targetSessionId =
-      sessionId || useSessionStore.getState().activeSessionId;
+      chatSessionId || useSessionStore.getState().activeSessionId;
     if (!targetSessionId) return;
 
     set({ isLoading: true, error: null });
@@ -75,7 +75,7 @@ export const useMessageStore = create<MessageState>()((set) => ({
   },
 
   sendUserMessage: async (
-    sessionId: string,
+    chatSessionId: string,
     content: string,
     role: "USER" | "ASSISTANT" | "SYSTEM" = "USER"
   ) => {
@@ -141,17 +141,17 @@ export const useMessageStore = create<MessageState>()((set) => ({
     }
   },
 
-  clearSessionMessages: async (sessionId: string) => {
+  clearSessionMessages: async (chatSessionId: string) => {
     set({ isLoading: true, error: null });
     try {
-      await deleteAllSessionMessages(sessionId);
+      await deleteAllSessionMessages(chatSessionId);
       set({ messages: [] });
       toast.success("Messages cleared");
     } catch (err) {
       const error =
         err instanceof Error
           ? err
-          : new Error(`Failed to clear messages for session ${sessionId}`);
+          : new Error(`Failed to clear messages for session ${chatSessionId}`);
       set({ error });
       toast.error("Failed to clear messages");
       throw error;

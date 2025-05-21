@@ -4,7 +4,7 @@ import { Message } from "@/interfaces/interfaces";
 
 // Add a new interface for the title update event
 interface WebSocketSessionTitleUpdatedDto {
-  sessionId: string;
+  chatSessionId: string;
   title: string;
   timestamp: string;
 }
@@ -18,15 +18,15 @@ interface SocketState {
   // Actions
   connect: (url: string) => void;
   disconnect: () => void;
-  joinSession: (sessionId: string) => void;
-  leaveSession: (sessionId: string) => void;
-  sendMessage: (message: string, sessionId: string) => void;
+  joinSession: (chatSessionId: string) => void;
+  leaveSession: (chatSessionId: string) => void;
+  sendMessage: (message: string, chatSessionId: string) => void;
   setupListeners: (
     onMessageReceived: (data: Message) => void,
     onMessageResponse: (data: Message) => void,
     onMessageChunk: (data: { chunk: string }) => void,
     onMessageComplete: () => void,
-    onSessionJoined: (data: { sessionId: string }) => void,
+    onSessionJoined: (data: { chatSessionId: string }) => void,
     onSessionTitleUpdated: (data: WebSocketSessionTitleUpdatedDto) => void,
     onError: (error: Error) => void
   ) => void;
@@ -68,35 +68,35 @@ export const useSocketStore = create<SocketState>()((set, get) => ({
     }
   },
 
-  joinSession: (sessionId: string) => {
+  joinSession: (chatSessionId: string) => {
     const { socket, isConnected } = get();
     if (!socket || !isConnected) return;
 
     socket.emit("joinSession", {
-      sessionId,
+      chatSessionId,
     });
 
-    set({ currentSessionId: sessionId });
+    set({ currentSessionId: chatSessionId });
   },
 
-  leaveSession: (sessionId: string) => {
+  leaveSession: (chatSessionId: string) => {
     const { socket, isConnected, currentSessionId } = get();
-    if (!socket || !isConnected || currentSessionId !== sessionId) return;
+    if (!socket || !isConnected || currentSessionId !== chatSessionId) return;
 
     socket.emit("leaveSession", {
-      sessionId,
+      chatSessionId,
     });
 
     set({ currentSessionId: "" });
   },
 
-  sendMessage: (message: string, sessionId: string) => {
+  sendMessage: (message: string, chatSessionId: string) => {
     const { socket, isConnected } = get();
     if (!socket || !isConnected) return;
 
     socket.emit("sendMessage", {
       message,
-      sessionId,
+      chatSessionId,
     });
   },
 

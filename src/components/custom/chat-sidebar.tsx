@@ -21,8 +21,8 @@ export function ChatSidebar() {
     await createSession("New Chat");
   };
 
-  const handleSessionClick = (sessionId: string) => {
-    setActiveSession(sessionId);
+  const handleSessionClick = (chatSessionId: string) => {
+    setActiveSession(chatSessionId);
   };
 
   return (

@@ -12,7 +12,7 @@ const api = axios.create({
 });
 
 interface CreateMessageParams {
-  sessionId: string;
+  chatSessionId: string;
   content: string;
   role: "USER" | "ASSISTANT" | "SYSTEM";
 }
@@ -23,7 +23,7 @@ interface UpdateMessageParams {
 
 interface MessageResponse {
   id: string;
-  sessionId: string;
+  chatSessionId: string;
   content: string;
   role: "USER" | "ASSISTANT" | "SYSTEM";
   createdAt: string;
@@ -54,11 +54,11 @@ export async function createChatMessage(
  * Fetch all messages, optionally filtered by session ID
  */
 export async function getChatMessages(
-  sessionId?: string
+  chatSessionId?: string
 ): Promise<MessageResponse[]> {
   try {
     const response = await api.get("/chat-messages", {
-      params: sessionId ? { sessionId } : undefined,
+      params: chatSessionId ? { chatSessionId } : undefined,
     });
     return response.data;
   } catch (error) {
@@ -115,13 +115,13 @@ export async function deleteChatMessage(
  * Delete all messages for a session
  */
 export async function deleteAllSessionMessages(
-  sessionId: string
+  chatSessionId: string
 ): Promise<void> {
   try {
-    await api.delete(`/chat-messages/session/${sessionId}`);
+    await api.delete(`/chat-messages/session/${chatSessionId}`);
   } catch (error) {
     console.error(
-      `Error deleting messages for session ID: ${sessionId}:`,
+      `Error deleting messages for session ID: ${chatSessionId}:`,
       error
     );
     throw error;
