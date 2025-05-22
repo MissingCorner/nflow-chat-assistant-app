@@ -1,13 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Message } from "@/interfaces/interfaces";
-import {
-  createChatMessage,
-  getChatMessages,
-  deleteChatMessage,
-  updateChatMessage,
-  deleteAllSessionMessages,
-  mapToAppMessage,
-} from "@/services/api/chatMessageService";
+import { chatMessageService } from "@/services/api/chatMessageService";
 
 interface UseChatMessagesReturn {
   messages: Message[];
@@ -40,8 +33,8 @@ export function useChatMessages(initialSessionId = ""): UseChatMessagesReturn {
       setIsLoading(true);
       setError(null);
       try {
-        const data = await getChatMessages(targetSessionId);
-        const appMessages = data.map(mapToAppMessage);
+        const data = await chatMessageService.getMessages(targetSessionId);
+        const appMessages = data.map(chatMessageService.mapToAppMessage);
 
         if (
           chatSessionId === activeSessionId ||
@@ -72,13 +65,13 @@ export function useChatMessages(initialSessionId = ""): UseChatMessagesReturn {
       setIsLoading(true);
       setError(null);
       try {
-        const response = await createChatMessage({
-          chatSessionId: chatSessionId,
+        const response = await chatMessageService.createMessage(
+          chatSessionId,
           content,
-          role,
-        });
+          role
+        );
 
-        const newMessage = mapToAppMessage(response);
+        const newMessage = chatMessageService.mapToAppMessage(response);
 
         if (chatSessionId === activeSessionId) {
           setMessages((prev) => [...prev, newMessage]);
@@ -102,8 +95,8 @@ export function useChatMessages(initialSessionId = ""): UseChatMessagesReturn {
       setIsLoading(true);
       setError(null);
       try {
-        const response = await updateChatMessage(id, { content });
-        const updatedMessage = mapToAppMessage(response);
+        const response = await chatMessageService.updateMessage(id, content);
+        const updatedMessage = chatMessageService.mapToAppMessage(response);
 
         setMessages((prev) =>
           prev.map((message) => (message.id === id ? updatedMessage : message))
@@ -128,7 +121,7 @@ export function useChatMessages(initialSessionId = ""): UseChatMessagesReturn {
     setIsLoading(true);
     setError(null);
     try {
-      await deleteChatMessage(id);
+      await chatMessageService.deleteMessage(id);
       setMessages((prev) => prev.filter((message) => message.id !== id));
     } catch (err) {
       const error =
@@ -147,7 +140,7 @@ export function useChatMessages(initialSessionId = ""): UseChatMessagesReturn {
       setIsLoading(true);
       setError(null);
       try {
-        await deleteAllSessionMessages(chatSessionId);
+        await chatMessageService.deleteAllSessionMessages(chatSessionId);
 
         if (chatSessionId === activeSessionId) {
           setMessages([]);

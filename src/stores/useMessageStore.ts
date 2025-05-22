@@ -1,12 +1,6 @@
 import { create } from "zustand";
 import { Message } from "@/interfaces/interfaces";
-import {
-  getChatMessages,
-  deleteChatMessage,
-  updateChatMessage,
-  deleteAllSessionMessages,
-  mapToAppMessage,
-} from "@/services/api/chatMessageService";
+import { chatMessageService } from "@/services/api/chatMessageService";
 import { toast } from "sonner";
 import { useSessionStore } from "./useSessionStore";
 import { useUIStore } from "./useUIStore";
@@ -61,8 +55,8 @@ export const useMessageStore = create<MessageState>()((set) => ({
 
     set({ isLoading: true, error: null });
     try {
-      const data = await getChatMessages(targetSessionId);
-      const appMessages = data.map(mapToAppMessage);
+      const data = await chatMessageService.getMessages(targetSessionId);
+      const appMessages = data.map(chatMessageService.mapToAppMessage);
       set({ messages: appMessages });
     } catch (err) {
       const error =
@@ -97,8 +91,8 @@ export const useMessageStore = create<MessageState>()((set) => ({
   updateMessage: async (id: string, content: string) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await updateChatMessage(id, { content });
-      const updatedMessage = mapToAppMessage(response);
+      const response = await chatMessageService.updateMessage(id, content);
+      const updatedMessage = chatMessageService.mapToAppMessage(response);
 
       set((state) => ({
         messages: state.messages.map((message) =>
@@ -123,7 +117,7 @@ export const useMessageStore = create<MessageState>()((set) => ({
   deleteMessage: async (id: string) => {
     set({ isLoading: true, error: null });
     try {
-      await deleteChatMessage(id);
+      await chatMessageService.deleteMessage(id);
       set((state) => ({
         messages: state.messages.filter((message) => message.id !== id),
       }));
@@ -144,7 +138,7 @@ export const useMessageStore = create<MessageState>()((set) => ({
   clearSessionMessages: async (chatSessionId: string) => {
     set({ isLoading: true, error: null });
     try {
-      await deleteAllSessionMessages(chatSessionId);
+      await chatMessageService.deleteAllSessionMessages(chatSessionId);
       set({ messages: [] });
       toast.success("Messages cleared");
     } catch (err) {

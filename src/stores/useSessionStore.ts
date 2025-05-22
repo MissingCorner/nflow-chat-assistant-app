@@ -1,12 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { Session } from "@/types/chat";
-import {
-  createChatSession,
-  deleteChatSession,
-  getAllChatSessions,
-  updateChatSession,
-} from "@/services/api/chatSessionService";
+import { chatSessionService } from "@/services/api/chatSessionService";
 import { toast } from "sonner";
 
 interface SessionState {
@@ -41,7 +36,7 @@ export const useSessionStore = create<SessionState>()(
       fetchSessions: async () => {
         set({ isLoading: true, error: null });
         try {
-          const data = await getAllChatSessions();
+          const data = await chatSessionService.getAllSessions();
           set({ sessions: data });
 
           // If there's no active session but we have sessions, set the first one as active
@@ -62,7 +57,7 @@ export const useSessionStore = create<SessionState>()(
       createSession: async (title: string) => {
         set({ isLoading: true, error: null });
         try {
-          const newSession = await createChatSession({ title });
+          const newSession = await chatSessionService.createSession(title);
           // Add new session to the top of the list
           set((state) => ({
             sessions: [newSession, ...state.sessions],
@@ -87,7 +82,11 @@ export const useSessionStore = create<SessionState>()(
       ) => {
         set({ isLoading: true, error: null });
         try {
-          const updatedSession = await updateChatSession(id, data);
+          const updatedSession = await chatSessionService.updateSession(
+            id,
+            data.title,
+            data.archived
+          );
           set((state) => ({
             sessions: state.sessions.map((session) =>
               session.id === id ? updatedSession : session
@@ -120,7 +119,7 @@ export const useSessionStore = create<SessionState>()(
       deleteSession: async (id: string) => {
         set({ isLoading: true, error: null });
         try {
-          await deleteChatSession(id);
+          await chatSessionService.deleteSession(id);
 
           // If we're deleting the active session, select a new one
           const { activeSessionId, sessions } = get();

@@ -1,11 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Session } from "@/types/chat";
-import {
-  createChatSession,
-  deleteChatSession,
-  getAllChatSessions,
-  updateChatSession,
-} from "@/services/api/chatSessionService";
+import { chatSessionService } from "@/services/api/chatSessionService";
 
 interface UseChatSessionsReturn {
   sessions: Session[];
@@ -30,7 +25,7 @@ export function useChatSessions(): UseChatSessionsReturn {
     setIsLoading(true);
     setError(null);
     try {
-      const data = await getAllChatSessions();
+      const data = await chatSessionService.getAllSessions();
       setSessions(data);
       return data;
     } catch (err) {
@@ -51,7 +46,7 @@ export function useChatSessions(): UseChatSessionsReturn {
     setIsLoading(true);
     setError(null);
     try {
-      const newSession = await createChatSession({ title });
+      const newSession = await chatSessionService.createSession(title);
       setSessions((prev) => [newSession, ...prev]);
       return newSession;
     } catch (err) {
@@ -72,7 +67,11 @@ export function useChatSessions(): UseChatSessionsReturn {
       setIsLoading(true);
       setError(null);
       try {
-        const updatedSession = await updateChatSession(id, data);
+        const updatedSession = await chatSessionService.updateSession(
+          id,
+          data.title,
+          data.archived
+        );
         setSessions((prev) =>
           prev.map((session) => (session.id === id ? updatedSession : session))
         );
@@ -95,7 +94,7 @@ export function useChatSessions(): UseChatSessionsReturn {
     setIsLoading(true);
     setError(null);
     try {
-      await deleteChatSession(id);
+      await chatSessionService.deleteSession(id);
       setSessions((prev) => prev.filter((session) => session.id !== id));
     } catch (err) {
       setError(

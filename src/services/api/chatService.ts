@@ -37,13 +37,3 @@ export class ChatService implements IChatService {
 
 // Export a default instance
 export const chatService = ChatService.getInstance();
-
-/**
- * Legacy function for backward compatibility
- * @deprecated Use chatService.sendMessage instead
- */
-export async function sendChatMessage(
-  request: ChatRequest
-): Promise<ChatResponse> {
-  return chatService.sendMessage(request);
-}

@@ -103,32 +103,3 @@ export class ChatSessionService implements IChatSessionService {
 
 // Export a default instance
 export const chatSessionService = ChatSessionService.getInstance();
-
-/**
- * Legacy functions for backward compatibility
- * @deprecated Use chatSessionService methods instead
- */
-export async function createChatSession(params: {
-  title: string;
-}): Promise<Session> {
-  return chatSessionService.createSession(params.title);
-}
-
-export async function getAllChatSessions(): Promise<Session[]> {
-  return chatSessionService.getAllSessions();
-}
-
-export async function getChatSessionById(id: string): Promise<Session> {
-  return chatSessionService.getSessionById(id);
-}
-
-export async function updateChatSession(
-  id: string,
-  params: { title?: string; archived?: boolean }
-): Promise<Session> {
-  return chatSessionService.updateSession(id, params.title, params.archived);
-}
-
-export async function deleteChatSession(id: string): Promise<void> {
-  return chatSessionService.deleteSession(id);
-}
