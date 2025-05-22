@@ -6,7 +6,7 @@ import {
   deleteChatSession,
   getAllChatSessions,
   updateChatSession,
-} from "@/services/chatSessionService";
+} from "@/services/api/chatSessionService";
 import { toast } from "sonner";
 
 interface SessionState {

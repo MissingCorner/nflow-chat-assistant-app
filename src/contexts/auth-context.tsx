@@ -6,7 +6,7 @@ import {
   useState,
 } from "react";
 import { AuthContextValue, AuthState } from "@/types/auth";
-import { AuthService } from "@/services/auth";
+import { AuthService } from "@/services/api/authService";
 
 const initialState: AuthState = {
   isAuthenticated: false,

@@ -7,7 +7,7 @@ import {
   updateChatMessage,
   deleteAllSessionMessages,
   mapToAppMessage,
-} from "@/services/chatMessageService";
+} from "@/services/api/chatMessageService";
 
 interface UseChatMessagesReturn {
   messages: Message[];

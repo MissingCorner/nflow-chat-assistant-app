@@ -6,7 +6,7 @@ import {
   updateChatMessage,
   deleteAllSessionMessages,
   mapToAppMessage,
-} from "@/services/chatMessageService";
+} from "@/services/api/chatMessageService";
 import { toast } from "sonner";
 import { useSessionStore } from "./useSessionStore";
 import { useUIStore } from "./useUIStore";

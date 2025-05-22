@@ -1,18 +1,6 @@
 {
   "openapi": "3.0.0",
   "paths": {
-    "/": {
-      "get": {
-        "operationId": "AppController_getHello",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "tags": ["App"]
-      }
-    },
     "/api/health": {
       "get": {
         "operationId": "AppController_healthCheck",
@@ -25,7 +13,7 @@
         "tags": ["App"]
       }
     },
-    "/chat": {
+    "/api/chat": {
       "post": {
         "operationId": "ChatController_processMessage",
         "parameters": [],
@@ -53,6 +41,12 @@
           "400": {
             "description": "Invalid request parameters"
           },
+          "401": {
+            "description": "User not authenticated"
+          },
+          "403": {
+            "description": "Access to this chat session is forbidden"
+          },
           "500": {
             "description": "Internal server error"
           }
@@ -61,7 +55,7 @@
         "tags": ["Chat"]
       }
     },
-    "/chat-messages": {
+    "/api/chat-messages": {
       "post": {
         "operationId": "ChatMessageController_create",
         "parameters": [],
@@ -88,6 +82,12 @@
           },
           "400": {
             "description": "Invalid request parameters."
+          },
+          "401": {
+            "description": "User not authenticated."
+          },
+          "403": {
+            "description": "Access to this chat session is forbidden."
           }
         },
         "summary": "Create a new chat message",
@@ -97,10 +97,10 @@
         "operationId": "ChatMessageController_findAll",
         "parameters": [
           {
-            "name": "sessionId",
+            "name": "chatSessionId",
             "required": false,
             "in": "query",
-            "description": "Filter messages by session ID",
+            "description": "Filter messages by chat session ID",
             "schema": {
               "type": "string"
             }
@@ -119,13 +119,19 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "User not authenticated."
+          },
+          "403": {
+            "description": "Access to this chat session is forbidden."
           }
         },
         "summary": "Get all chat messages or filter by session ID",
         "tags": ["Chat Messages"]
       }
     },
-    "/chat-messages/{id}": {
+    "/api/chat-messages/{id}": {
       "get": {
         "operationId": "ChatMessageController_findOne",
         "parameters": [
@@ -149,6 +155,12 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "User not authenticated."
+          },
+          "403": {
+            "description": "Access to this message is forbidden."
           },
           "404": {
             "description": "Chat message not found."
@@ -194,6 +206,12 @@
           "400": {
             "description": "Invalid request parameters."
           },
+          "401": {
+            "description": "User not authenticated."
+          },
+          "403": {
+            "description": "Access to this message is forbidden."
+          },
           "404": {
             "description": "Chat message not found."
           }
@@ -225,6 +243,12 @@
               }
             }
           },
+          "401": {
+            "description": "User not authenticated."
+          },
+          "403": {
+            "description": "Access to this message is forbidden."
+          },
           "404": {
             "description": "Chat message not found."
           }
@@ -233,12 +257,12 @@
         "tags": ["Chat Messages"]
       }
     },
-    "/chat-messages/session/{sessionId}": {
+    "/api/chat-messages/session/{chatSessionId}": {
       "delete": {
         "operationId": "ChatMessageController_removeAllBySession",
         "parameters": [
           {
-            "name": "sessionId",
+            "name": "chatSessionId",
             "required": true,
             "in": "path",
             "description": "The ID of the chat session",
@@ -250,13 +274,141 @@
         "responses": {
           "200": {
             "description": "The chat messages have been successfully deleted."
+          },
+          "401": {
+            "description": "User not authenticated."
+          },
+          "403": {
+            "description": "Access to this chat session is forbidden."
+          },
+          "404": {
+            "description": "Chat session not found."
           }
         },
         "summary": "Delete all messages for a chat session",
         "tags": ["Chat Messages"]
       }
     },
-    "/chat-sessions": {
+    "/api/auth/keycloak/login": {
+      "get": {
+        "description": "Redirects the user to Keycloak login page with proper OAuth2 parameters. This endpoint starts the SSO authentication process.",
+        "operationId": "KeycloakController_login",
+        "parameters": [],
+        "responses": {
+          "302": {
+            "description": "Redirects to Keycloak login page. The response will contain a Location header with the Keycloak authorization URL."
+          }
+        },
+        "summary": "Initiate Keycloak login flow",
+        "tags": ["Authentication"]
+      }
+    },
+    "/api/auth/keycloak/callback": {
+      "get": {
+        "description": "Processes the OAuth2 callback from Keycloak after successful authentication. This endpoint should be registered as the OAuth2 redirect URI in Keycloak.",
+        "operationId": "KeycloakController_callback",
+        "parameters": [
+          {
+            "name": "code",
+            "required": true,
+            "in": "query",
+            "description": "Authorization code from Keycloak",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "state",
+            "required": true,
+            "in": "query",
+            "description": "State parameter for CSRF protection, must match the state from login",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "302": {
+            "description": "Authentication successful, redirects to dashboard with established session"
+          },
+          "401": {
+            "description": "Invalid state parameter or authentication failed"
+          }
+        },
+        "summary": "Handle Keycloak callback",
+        "tags": ["Authentication"]
+      }
+    },
+    "/api/auth/keycloak/refresh": {
+      "post": {
+        "description": "Uses the refresh token to obtain a new access token when the current one expires.",
+        "operationId": "KeycloakController_refresh",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Tokens refreshed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No refresh token available or refresh failed"
+          }
+        },
+        "summary": "Refresh access token",
+        "tags": ["Authentication"]
+      }
+    },
+    "/api/auth/keycloak/logout": {
+      "post": {
+        "description": "Logs out the user from both the application and Keycloak SSO. This will invalidate all sessions.",
+        "operationId": "KeycloakController_logout",
+        "parameters": [
+          {
+            "name": "redirect_uri",
+            "required": false,
+            "in": "query",
+            "description": "Optional URL to redirect to after logout",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "302": {
+            "description": "Successfully logged out, redirects to Keycloak logout page or specified redirect URI"
+          }
+        },
+        "summary": "Logout user",
+        "tags": ["Authentication"]
+      }
+    },
+    "/api/auth/keycloak/status": {
+      "get": {
+        "description": "Returns whether the user is currently authenticated based on session state.",
+        "operationId": "KeycloakController_getStatus",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Returns authentication status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthStatusResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Check authentication status",
+        "tags": ["Authentication"]
+      }
+    },
+    "/api/chat-sessions": {
       "post": {
         "operationId": "ChatSessionController_create",
         "parameters": [],
@@ -276,6 +428,9 @@
           },
           "400": {
             "description": "Invalid request parameters."
+          },
+          "401": {
+            "description": "User not authenticated."
           }
         },
         "summary": "Create a new chat session",
@@ -286,14 +441,17 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": "List of all chat sessions."
+            "description": "List of all chat sessions for the user."
+          },
+          "401": {
+            "description": "User not authenticated."
           }
         },
-        "summary": "Get all chat sessions",
+        "summary": "Get all chat sessions for the authenticated user",
         "tags": ["Chat Sessions"]
       }
     },
-    "/chat-sessions/{id}": {
+    "/api/chat-sessions/{id}": {
       "get": {
         "operationId": "ChatSessionController_findOne",
         "parameters": [
@@ -309,6 +467,12 @@
         "responses": {
           "200": {
             "description": "The chat session has been found."
+          },
+          "401": {
+            "description": "User not authenticated."
+          },
+          "403": {
+            "description": "Access to this chat session is forbidden."
           },
           "404": {
             "description": "Chat session not found."
@@ -346,6 +510,12 @@
           "400": {
             "description": "Invalid request parameters."
           },
+          "401": {
+            "description": "User not authenticated."
+          },
+          "403": {
+            "description": "Access to this chat session is forbidden."
+          },
           "404": {
             "description": "Chat session not found."
           }
@@ -369,131 +539,18 @@
           "204": {
             "description": "The chat session has been successfully deleted."
           },
+          "401": {
+            "description": "User not authenticated."
+          },
+          "403": {
+            "description": "Access to this chat session is forbidden."
+          },
           "404": {
             "description": "Chat session not found."
           }
         },
         "summary": "Delete a chat session",
         "tags": ["Chat Sessions"]
-      }
-    },
-    "/auth/keycloak/login": {
-      "get": {
-        "description": "Redirects the user to Keycloak login page with proper OAuth2 parameters. This endpoint starts the SSO authentication process.",
-        "operationId": "KeycloakController_login",
-        "parameters": [],
-        "responses": {
-          "302": {
-            "description": "Redirects to Keycloak login page. The response will contain a Location header with the Keycloak authorization URL."
-          }
-        },
-        "summary": "Initiate Keycloak login flow",
-        "tags": ["Authentication"]
-      }
-    },
-    "/auth/keycloak/callback": {
-      "get": {
-        "description": "Processes the OAuth2 callback from Keycloak after successful authentication. This endpoint should be registered as the OAuth2 redirect URI in Keycloak.",
-        "operationId": "KeycloakController_callback",
-        "parameters": [
-          {
-            "name": "code",
-            "required": true,
-            "in": "query",
-            "description": "Authorization code from Keycloak",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "state",
-            "required": true,
-            "in": "query",
-            "description": "State parameter for CSRF protection, must match the state from login",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "302": {
-            "description": "Authentication successful, redirects to dashboard with established session"
-          },
-          "401": {
-            "description": "Invalid state parameter or authentication failed"
-          }
-        },
-        "summary": "Handle Keycloak callback",
-        "tags": ["Authentication"]
-      }
-    },
-    "/auth/keycloak/refresh": {
-      "post": {
-        "description": "Uses the refresh token to obtain a new access token when the current one expires.",
-        "operationId": "KeycloakController_refresh",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Tokens refreshed successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TokenResponseDto"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "No refresh token available or refresh failed"
-          }
-        },
-        "summary": "Refresh access token",
-        "tags": ["Authentication"]
-      }
-    },
-    "/auth/keycloak/logout": {
-      "post": {
-        "description": "Logs out the user from both the application and Keycloak SSO. This will invalidate all sessions.",
-        "operationId": "KeycloakController_logout",
-        "parameters": [
-          {
-            "name": "redirect_uri",
-            "required": false,
-            "in": "query",
-            "description": "Optional URL to redirect to after logout",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "302": {
-            "description": "Successfully logged out, redirects to Keycloak logout page or specified redirect URI"
-          }
-        },
-        "summary": "Logout user",
-        "tags": ["Authentication"]
-      }
-    },
-    "/auth/keycloak/status": {
-      "get": {
-        "description": "Returns whether the user is currently authenticated based on session state.",
-        "operationId": "KeycloakController_getStatus",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Returns authentication status",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AuthStatusResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "summary": "Check authentication status",
-        "tags": ["Authentication"]
       }
     }
   },
@@ -517,7 +574,7 @@
       "ChatRequestDto": {
         "type": "object",
         "properties": {
-          "sessionId": {
+          "chatSessionId": {
             "type": "string",
             "description": "Unique identifier for the chat session",
             "example": "abc123"
@@ -528,12 +585,12 @@
             "example": "Build a task manager app with login and calendar"
           }
         },
-        "required": ["sessionId", "message"]
+        "required": ["chatSessionId", "message"]
       },
       "ChatResponseDto": {
         "type": "object",
         "properties": {
-          "sessionId": {
+          "chatSessionId": {
             "type": "string",
             "description": "Unique identifier for the chat session",
             "example": "abc123"
@@ -549,12 +606,12 @@
             "example": "https://nflow.so/app/xyz456"
           }
         },
-        "required": ["sessionId", "reply"]
+        "required": ["chatSessionId", "reply"]
       },
       "CreateMessageDto": {
         "type": "object",
         "properties": {
-          "sessionId": {
+          "chatSessionId": {
             "type": "string",
             "description": "The unique identifier of the chat session",
             "example": "123e4567-e89b-12d3-a456-426614174000"
@@ -572,7 +629,7 @@
             "default": "USER"
           }
         },
-        "required": ["sessionId", "content", "role"]
+        "required": ["chatSessionId", "content", "role"]
       },
       "MessageResponseDto": {
         "type": "object",
@@ -582,7 +639,7 @@
             "description": "The unique identifier of the message",
             "example": "123e4567-e89b-12d3-a456-426614174000"
           },
-          "sessionId": {
+          "chatSessionId": {
             "type": "string",
             "description": "The unique identifier of the chat session",
             "example": "123e4567-e89b-12d3-a456-426614174000"
@@ -613,7 +670,7 @@
         },
         "required": [
           "id",
-          "sessionId",
+          "chatSessionId",
           "content",
           "role",
           "createdAt",
@@ -647,6 +704,62 @@
         },
         "required": ["success", "message"]
       },
+      "TokenResponseDto": {
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string",
+            "description": "The access token for API requests"
+          },
+          "refreshToken": {
+            "type": "string",
+            "description": "The refresh token to get new access tokens"
+          },
+          "idToken": {
+            "type": "string",
+            "description": "The ID token containing user information"
+          }
+        },
+        "required": ["accessToken", "refreshToken", "idToken"]
+      },
+      "AuthStatusResponseDto": {
+        "type": "object",
+        "properties": {
+          "authenticated": {
+            "type": "boolean",
+            "description": "Whether the user is currently authenticated"
+          },
+          "userId": {
+            "type": "string",
+            "description": "User ID from Keycloak (sub claim)",
+            "example": "12345-67890-abcdef"
+          },
+          "user": {
+            "type": "object",
+            "description": "User information from the ID token",
+            "properties": {
+              "sub": {
+                "type": "string",
+                "example": "12345-67890-abcdef"
+              },
+              "email": {
+                "type": "string",
+                "example": "user@example.com"
+              },
+              "name": {
+                "type": "string",
+                "example": "John Doe"
+              },
+              "preferred_username": {
+                "type": "string",
+                "example": "johndoe"
+              }
+            },
+            "additionalProperties": true
+          }
+        },
+        "required": ["authenticated", "user"]
+      },
       "CreateChatSessionDto": {
         "type": "object",
         "properties": {
@@ -672,38 +785,6 @@
             "example": true
           }
         }
-      },
-      "TokenResponseDto": {
-        "type": "object",
-        "properties": {
-          "accessToken": {
-            "type": "string",
-            "description": "Access token for API calls",
-            "example": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..."
-          },
-          "refreshToken": {
-            "type": "string",
-            "description": "Token used to refresh the access token",
-            "example": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..."
-          },
-          "idToken": {
-            "type": "string",
-            "description": "OpenID Connect ID token containing user information",
-            "example": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..."
-          }
-        },
-        "required": ["accessToken", "refreshToken", "idToken"]
-      },
-      "AuthStatusResponseDto": {
-        "type": "object",
-        "properties": {
-          "authenticated": {
-            "type": "boolean",
-            "description": "Whether the user is currently authenticated",
-            "example": true
-          }
-        },
-        "required": ["authenticated"]
       }
     }
   }

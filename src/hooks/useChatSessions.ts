@@ -5,7 +5,7 @@ import {
   deleteChatSession,
   getAllChatSessions,
   updateChatSession,
-} from "@/services/chatSessionService";
+} from "@/services/api/chatSessionService";
 
 interface UseChatSessionsReturn {
   sessions: Session[];
